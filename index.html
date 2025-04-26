@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Rentabilidad</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+    }
+    .result {
+      background: #f9f9f9;
+      margin-top: 2rem;
+      padding: 1rem;
+      border-left: 4px solid #4CAF50;
+    }
+    .result p {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Rentabilidad</h1>
+
+    <label for="monto">Monto Inicial (COP)</label>
+    <input type="number" id="monto" placeholder="Ej: 5000000"/>
+
+    <label for="aporteMensual">Aporte Mensual (COP)</label>
+    <input type="number" id="aporteMensual" value="0" />
+
+    <label for="entidad">Entidad</label>
+    <select id="entidad">
+      <option value="nu_flexible">Nu - Flexible (9.5%)</option>
+      <option value="nu_cdt">Nu - CDT Fijo (10%)</option>
+      <option value="rapipay">Rapipay (9%)</option>
+      <option value="lulobank">Lulobank (9.5%)</option>
+      <option value="personalizado">Personalizado</option>
+    </select>
+
+    <label for="porcentajePersonalizado" id="labelPorcentajePersonalizado" style="display:none;">Porcentaje Anual Personalizado (%)</label>
+    <input type="number" id="porcentajePersonalizado" placeholder="Ej: 8.75" style="display:none;"/>
+
+    <label for="plazoTipo">Plazo</label>
+    <div style="display: flex; gap: 10px;">
+      <input type="number" id="plazoValor" placeholder="Cantidad" />
+      <select id="plazoTipo">
+        <option value="dias">Días</option>
+        <option value="meses">Meses</option>
+        <option value="años">Años</option>
+      </select>
+    </div>
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div class="result" id="resultados" style="display:none;">
+      <p id="montoFinal"></p>
+      <p id="gananciaFinal"></p>
+      <p id="retencionFinal"></p>
+    </div>
+  </div>
+
+  <script>
+    const entidadSelect = document.getElementById('entidad');
+    const porcentajeInput = document.getElementById('porcentajePersonalizado');
+    const porcentajeLabel = document.getElementById('labelPorcentajePersonalizado');
+
+    entidadSelect.addEventListener('change', () => {
+      const esPersonalizado = entidadSelect.value === 'personalizado';
+      porcentajeInput.style.display = esPersonalizado ? 'block' : 'none';
+      porcentajeLabel.style.display = esPersonalizado ? 'block' : 'none';
+    });
+
+    function calcular() {
+      const montoInicial = parseFloat(document.getElementById('monto').value);
+      const aporteMensual = parseFloat(document.getElementById('aporteMensual').value);
+      const entidad = entidadSelect.value;
+      const plazoValor = parseInt(document.getElementById('plazoValor').value);
+      const plazoTipo = document.getElementById('plazoTipo').value;
+
+      if (!montoInicial || montoInicial <= 0 || !plazoValor || plazoValor <= 0) {
+        alert("Por favor, completa correctamente los campos.");
+        return;
+      }
+
+      // Convertir el plazo a días
+      let dias = plazoValor;
+      if (plazoTipo === 'meses') dias = plazoValor * 30;
+      else if (plazoTipo === 'años') dias = plazoValor * 365;
+
+      // Obtener tasa anual
+      let tasaAnual = 0;
+      switch (entidad) {
+        case 'nu_flexible': tasaAnual = 9.5; break;
+        case 'nu_cdt': tasaAnual = 10; break;
+        case 'rapipay': tasaAnual = 9; break;
+        case 'lulobank': tasaAnual = 9.5; break;
+        case 'personalizado':
+          tasaAnual = parseFloat(document.getElementById('porcentajePersonalizado').value);
+          if (!tasaAnual || tasaAnual <= 0) {
+            alert("Ingresa un porcentaje válido.");
+            return;
+          }
+          break;
+      }
+
+      let monto = montoInicial;
+      let gananciaTotal = 0;
+      const tasaDiaria = Math.pow(1 + tasaAnual / 100, 1 / 365) - 1;
+
+      for (let i = 1; i <= dias; i++) {
+        const gananciaDiaria = monto * tasaDiaria;
+        monto += gananciaDiaria;
+        gananciaTotal += gananciaDiaria;
+
+        if (i % 30 === 0 && aporteMensual > 0) {
+          monto += aporteMensual;
+        }
+      }
+
+      let retencion = 0;
+      if (gananciaTotal / dias > 2588.57) {
+        retencion = gananciaTotal * 0.07;
+        monto -= retencion;
+      }
+
+      const resultados = document.getElementById('resultados');
+      resultados.style.display = 'block';
+      document.getElementById('montoFinal').textContent = `💰 Monto total final: ${monto.toFixed(2)} COP`;
+      document.getElementById('gananciaFinal').textContent = `📈 Ganancia generada: ${gananciaTotal.toFixed(2)} COP`;
+      document.getElementById('retencionFinal').textContent = retencion > 0
+        ? `💸 Retención por impuestos (7%): ${retencion.toFixed(2)} COP`
+        : `✅ No aplica retención de impuestos`;
+    }
+  </script>
+</body>
+</html>
