@@ -1,74 +1,274 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Calculadora Financiera</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Rentabilidad</title>
+  <style>
+    :root {
+      --bg-color: #f0f2f5;
+      --text-color: #000;
+      --card-bg: #fff;
+      --result-bg: #f9f9f9;
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #eee;
+      --card-bg: #1e1e1e;
+      --result-bg: #2c2c2c;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    #toggleDarkMode {
+      background-color: #333;
+      margin-top: 1rem;
+    }
+    .result {
+      background: var(--result-bg);
+      margin-top: 2rem;
+      padding: 1rem;
+      border-left: 4px solid #4CAF50;
+      transition: background 0.3s ease;
+    }
+    .result p {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
 <body>
-
-<button class="darkmode-toggle" onclick="toggleDarkMode()">☾</button>
-
-<div class="container">
-  <div class="card">
+  <div class="container">
     <h1>Calculadora de Rentabilidad</h1>
 
-    <label for="monto">Monto Inicial</label>
-    <input type="text" id="monto" placeholder="Ej: 1.000.000" oninput="formatearInputMonto()">
+    <button id="toggleDarkMode">🌗 Cambiar Modo</button>
 
-    <label for="aporteMensual">Aporte Mensual</label>
-    <input type="text" id="aporteMensual" placeholder="Ej: 100.000" value="0" oninput="formatearInputMonto()">
+    <label for="monto">Monto Inicial (COP)</label>
+    <input type="text" id="monto" placeholder="Ej: 5.000.000"/>
+
+    <label for="aporteMensual">Aporte Mensual (COP)</label>
+    <input type="text" id="aporteMensual" value="0" />
 
     <label for="entidad">Entidad</label>
     <select id="entidad">
       <option value="nu_flexible">Nu - Flexible (9.5%)</option>
-      <option value="nu_cdt_90">Nu - CDT 90 días (10%)</option>
-      <option value="nu_cdt_120">Nu - CDT 120 días (10%)</option>
       <option value="rapipay">Rapipay (9%)</option>
       <option value="lulobank">Lulobank (9.5%)</option>
+      <option value="nu_cdt_90">Nu - CDT 90 días (10%)</option>
+      <option value="nu_cdt_120">Nu - CDT 120 días (10%)</option>
       <option value="personalizado">Personalizado</option>
     </select>
 
-    <p id="descripcionEntidad"></p>
+    <label for="porcentajePersonalizado" id="labelPorcentajePersonalizado" style="display:none;">Porcentaje Anual Personalizado (%)</label>
+    <input type="number" id="porcentajePersonalizado" placeholder="Ej: 8.75" style="display:none;"/>
 
-    <div id="porcentajePersonalizadoContainer" style="display:none;">
-      <label for="porcentajePersonalizado">Porcentaje anual (%)</label>
-      <input type="number" id="porcentajePersonalizado" placeholder="Ej: 12">
+    <label for="plazoTipo">Plazo</label>
+    <div style="display: flex; gap: 10px;">
+      <input type="number" id="plazoValor" placeholder="Cantidad" />
+      <select id="plazoTipo">
+        <option value="dias">Días</option>
+        <option value="meses">Meses</option>
+        <option value="años">Años</option>
+      </select>
     </div>
 
-    <label for="plazoValor">Plazo</label>
-    <input type="number" id="plazoValor" placeholder="Ej: 12">
-
-    <select id="plazoTipo">
-      <option value="dias">Días</option>
-      <option value="meses">Meses</option>
-      <option value="anios">Años</option>
-    </select>
-
     <button onclick="calcular()">Calcular Rentabilidad</button>
-    <div id="resultado"></div>
+
+    <div class="result" id="resultados" style="display:none;">
+      <p id="montoFinal"></p>
+      <p id="gananciaFinal"></p>
+      <p id="retencionFinal"></p>
+    </div>
+
+    <!-- Nueva sección para Ganancia por Dinero Prestado -->
+    <h2>Ganancia por Dinero Prestado</h2>
+
+    <label for="montoPrestamo">Monto a Prestar (COP)</label>
+    <input type="text" id="montoPrestamo" placeholder="Ej: 2.000.000"/>
+
+    <label for="interesAnualPrestamo">Interés Anual (%)</label>
+    <input type="number" id="interesAnualPrestamo" placeholder="Ej: 20"/>
+
+    <label for="plazoPrestamo">Plazo en Meses</label>
+    <input type="number" id="plazoPrestamo" placeholder="Ej: 12"/>
+
+    <button onclick="calcularGananciaPrestamo()">Calcular Ganancia Prestado</button>
+
+    <div class="result" id="resultadoPrestamo" style="display:none;">
+      <p id="gananciaPrestamo"></p>
+      <p id="pagoMensual"></p>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Calculadora de Préstamos</h2>
+  <script>
+    const montoInput = document.getElementById('monto');
+    const aporteInput = document.getElementById('aporteMensual');
+    const montoPrestamoInput = document.getElementById('montoPrestamo');
+    const entidadSelect = document.getElementById('entidad');
+    const porcentajeInput = document.getElementById('porcentajePersonalizado');
+    const porcentajeLabel = document.getElementById('labelPorcentajePersonalizado');
+    const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
 
-    <label for="montoPrestamo">Monto a prestar</label>
-    <input type="text" id="montoPrestamo" placeholder="Ej: 2.000.000" oninput="formatearInputMonto()">
+    entidadSelect.addEventListener('change', () => {
+      const esPersonalizado = entidadSelect.value === 'personalizado';
+      const esCdt90 = entidadSelect.value === 'nu_cdt_90';
+      const esCdt120 = entidadSelect.value === 'nu_cdt_120';
+      porcentajeInput.style.display = esPersonalizado ? 'block' : 'none';
+      porcentajeLabel.style.display = esPersonalizado ? 'block' : 'none';
 
-    <label for="interesAnualPrestamo">Interés anual (%)</label>
-    <input type="number" id="interesAnualPrestamo" placeholder="Ej: 25">
+      if (esCdt90) {
+        document.getElementById('plazoValor').value = 90;
+        document.getElementById('plazoTipo').value = 'dias';
+      } else if (esCdt120) {
+        document.getElementById('plazoValor').value = 120;
+        document.getElementById('plazoTipo').value = 'dias';
+      }
+    });
 
-    <label for="plazoPrestamo">Plazo en meses</label>
-    <input type="number" id="plazoPrestamo" placeholder="Ej: 12">
+    toggleDarkModeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
 
-    <button onclick="calcularPrestamo()">Calcular Préstamo</button>
-    <div id="resultadoPrestamo"></div>
-  </div>
-</div>
+    // Formatea los inputs mientras escribes
+    function formatearNumeroInput(input) {
+      let valor = input.value.replace(/\D/g, '');
+      valor = new Intl.NumberFormat('es-CO').format(valor);
+      input.value = valor;
+    }
 
-<script src="script.js"></script>
+    montoInput.addEventListener('input', () => formatearNumeroInput(montoInput));
+    aporteInput.addEventListener('input', () => formatearNumeroInput(aporteInput));
+    montoPrestamoInput.addEventListener('input', () => formatearNumeroInput(montoPrestamoInput));
 
+    function obtenerValorNumerico(input) {
+      return parseFloat(input.value.replace(/[,.]/g, '')) || 0;
+    }
+
+    function calcular() {
+      const montoInicial = obtenerValorNumerico(document.getElementById('monto'));
+      const aporteMensual = obtenerValorNumerico(document.getElementById('aporteMensual'));
+      const entidad = entidadSelect.value;
+      const plazoValor = parseInt(document.getElementById('plazoValor').value);
+      const plazoTipo = document.getElementById('plazoTipo').value;
+
+      if (!montoInicial || montoInicial <= 0 || !plazoValor || plazoValor <= 0) {
+        alert("Por favor, completa correctamente los campos.");
+        return;
+      }
+
+      let dias = plazoValor;
+      if (plazoTipo === 'meses') dias = plazoValor * 30;
+      else if (plazoTipo === 'años') dias = plazoValor * 365;
+
+      let tasaAnual = 0;
+      switch (entidad) {
+        case 'nu_flexible': tasaAnual = 9.5; break;
+        case 'rapipay': tasaAnual = 9; break;
+        case 'lulobank': tasaAnual = 9.5; break;
+        case 'nu_cdt_90': tasaAnual = 10; break;
+        case 'nu_cdt_120': tasaAnual = 10; break;
+        case 'personalizado':
+          tasaAnual = parseFloat(document.getElementById('porcentajePersonalizado').value);
+          if (!tasaAnual || tasaAnual <= 0) {
+            alert("Ingresa un porcentaje válido.");
+            return;
+          }
+          break;
+      }
+
+      let monto = montoInicial;
+      let gananciaTotal = 0;
+      const tasaDiaria = Math.pow(1 + tasaAnual / 100, 1 / 365) - 1;
+
+      for (let i = 1; i <= dias; i++) {
+        const gananciaDiaria = monto * tasaDiaria;
+        monto += gananciaDiaria;
+        gananciaTotal += gananciaDiaria;
+
+        if (i % 30 === 0 && aporteMensual > 0) {
+          monto += aporteMensual;
+        }
+      }
+
+      let retencion = 0;
+      if (gananciaTotal / dias > 2588.57) {
+        retencion = gananciaTotal * 0.07;
+        monto -= retencion;
+      }
+
+      const formatoPesos = (valor) => {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+      };
+
+      document.getElementById('resultados').style.display = 'block';
+      document.getElementById('montoFinal').textContent = `💰 Monto total final: ${formatoPesos(monto)}`;
+      document.getElementById('gananciaFinal').textContent = `📈 Ganancia generada: ${formatoPesos(gananciaTotal)}`;
+      document.getElementById('retencionFinal').textContent = retencion > 0
+        ? `💸 Retención por impuestos (7%): ${formatoPesos(retencion)}`
+        : `✅ No aplica retención de impuestos`;
+    }
+
+    function calcularGananciaPrestamo() {
+      const montoPrestamo = obtenerValorNumerico(document.getElementById('montoPrestamo'));
+      const interesAnual = obtenerValorNumerico(document.getElementById('interesAnualPrestamo'));
+      const plazoPrestamo = parseInt(document.getElementById('plazoPrestamo').value);
+
+      if (!montoPrestamo || montoPrestamo <= 0 || !plazoPrestamo || plazoPrestamo <= 0) {
+        alert("Por favor, completa correctamente los campos del préstamo.");
+        return;
+      }
+
+      const interesMensual = interesAnual / 100 / 12;
+      const pagoMensual = montoPrestamo * (interesMensual * Math.pow(1 + interesMensual, plazoPrestamo)) / (Math.pow(1 + interesMensual, plazoPrestamo) - 1);
+      const gananciaTotal = pagoMensual * plazoPrestamo - montoPrestamo;
+
+      const formatoPesos = (valor) => {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+      };
+
+      document.getElementById('resultadoPrestamo').style.display = 'block';
+      document.getElementById('gananciaPrestamo').textContent = `📈 Ganancia generada por el préstamo: ${formatoPesos(gananciaTotal)}`;
+      document.getElementById('pagoMensual').textContent = `💳 Pago mensual: ${formatoPesos(pagoMensual)}`;
+    }
+  </script>
 </body>
 </html>
-
