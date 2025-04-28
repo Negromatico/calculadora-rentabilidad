@@ -184,11 +184,11 @@
 
       <div class="result" id="resultados" style="display:none;">
         <p id="montoFinal"></p>
-        <p id="gananciaFinal"></p>
-        <p id="retencionFinal"></p>
+        <p id="gananciaFinal"></p> <!-- Mostrar ganancia después de retención o ganancia total -->
+        <p id="retencionFinal" style="display:none;"></p> <!-- Mostrar retención si aplica -->
       </div>
-    </div>
-
+      
+      
     <!-- Sección Préstamos -->
     <div id="prestamos" class="section">
       <label for="montoPrestamo">Monto a Prestar (COP)</label>
@@ -270,51 +270,65 @@
     }
 
     function calcular() {
-      const monto = parseFloat(montoInput.value.replace(/\D/g, ''));
-      const aporteMensual = parseFloat(aporteInput.value.replace(/\D/g, ''));
-      const entidadSeleccionada = document.getElementById('entidad').value;
-      let porcentaje = 0;
+  const monto = parseFloat(montoInput.value.replace(/\D/g, ''));
+  const aporteMensual = parseFloat(aporteInput.value.replace(/\D/g, ''));
+  const entidadSeleccionada = document.getElementById('entidad').value;
+  let porcentaje = 0;
 
-      if (entidadSeleccionada === 'nu_flexible') porcentaje = 9.5;
-      else if (entidadSeleccionada === 'rapipay') porcentaje = 9;
-      else if (entidadSeleccionada === 'lulobank') porcentaje = 9.5;
-      else if (entidadSeleccionada === 'nu_cdt_90') porcentaje = 10;
-      else if (entidadSeleccionada === 'nu_cdt_120') porcentaje = 10;
-      else if (entidadSeleccionada === 'personalizado') {
-        porcentaje = parseFloat(document.getElementById('porcentajePersonalizado').value);
-      }
+  // Asignar el porcentaje según la entidad seleccionada
+  if (entidadSeleccionada === 'nu_flexible') porcentaje = 9.5;
+  else if (entidadSeleccionada === 'rapipay') porcentaje = 9;
+  else if (entidadSeleccionada === 'lulobank') porcentaje = 9.5;
+  else if (entidadSeleccionada === 'nu_cdt_90') porcentaje = 10;
+  else if (entidadSeleccionada === 'nu_cdt_120') porcentaje = 10;
+  else if (entidadSeleccionada === 'personalizado') {
+    porcentaje = parseFloat(document.getElementById('porcentajePersonalizado').value);
+  }
 
-      const tasaMensual = porcentaje / 100 / 12; // Interés mensual
-      const plazoValor = parseInt(document.getElementById('plazoValor').value);
-      const plazoTipo = document.getElementById('plazoTipo').value;
+  const tasaMensual = porcentaje / 100 / 12; // Interés mensual
+  const plazoValor = parseInt(document.getElementById('plazoValor').value);
+  const plazoTipo = document.getElementById('plazoTipo').value;
 
-      // Convertir el plazo a meses si no es en meses
-      let plazoEnMeses = plazoValor;
-      if (plazoTipo === 'dias') plazoEnMeses = plazoValor / 30;
-      else if (plazoTipo === 'años') plazoEnMeses = plazoValor * 12;
+  // Convertir el plazo a meses si no es en meses
+  let plazoEnMeses = plazoValor;
+  if (plazoTipo === 'dias') plazoEnMeses = plazoValor / 30;
+  else if (plazoTipo === 'años') plazoEnMeses = plazoValor * 12;
 
-      // Calcular la ganancia
-      const montoFinal = monto * Math.pow(1 + tasaMensual, plazoEnMeses);
-      const ganancia = montoFinal - monto;
+  // Calcular el monto final (capital + intereses)
+  const montoFinal = monto * Math.pow(1 + tasaMensual, plazoEnMeses);
+  const ganancia = montoFinal - monto;
 
-      // Calcular la rentabilidad diaria
-      const rentabilidadDiaria = ganancia / plazoEnMeses / 30; // Aproximación de días en un mes
+  // Calcular la rentabilidad diaria
+  const rentabilidadDiaria = ganancia / plazoEnMeses / 30; // Aproximación de días en un mes
 
-      // Retención del 7% si la rentabilidad diaria supera 2.588,57 COP
-      let retencion = 0;
-      if (rentabilidadDiaria > 2588.57) {
-        retencion = ganancia * 0.07;
-      }
+  // Calcular la retención del 7% si la rentabilidad diaria supera los 2.588,57 COP
+  let retencion = 0;
+  if (rentabilidadDiaria > 2588.57) {
+    retencion = ganancia * 0.07;
+  }
 
-      const gananciaFinalConRetencion = ganancia - retencion;
+  const gananciaFinalConRetencion = ganancia - retencion;
 
-      // Mostrar resultados
-      document.getElementById('montoFinal').innerText = `Monto Final: COP ${new Intl.NumberFormat('es-CO').format(montoFinal.toFixed(2))}`;
-      document.getElementById('gananciaFinal').innerText = `Ganancia Total: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
-      document.getElementById('retencionFinal').innerText = `Retención (7%): COP ${new Intl.NumberFormat('es-CO').format(retencion.toFixed(2))}`;
+  // Mostrar el monto final en la página
+  document.getElementById('montoFinal').innerText = `Monto Final: COP ${new Intl.NumberFormat('es-CO').format(montoFinal.toFixed(2))}`;
 
-      document.getElementById('resultados').style.display = 'block';
-    }
+  // Si hay retención, mostrar el mensaje de retención y la ganancia final después de la retención
+  if (retencion > 0) {
+    document.getElementById('retencionFinal').style.display = 'block'; // Mostrar el campo de retención
+    document.getElementById('retencionFinal').innerText = `Retención (7%): COP ${new Intl.NumberFormat('es-CO').format(retencion.toFixed(2))}`;
+    document.getElementById('gananciaFinal').innerText = `Ganancia después de retención: COP ${new Intl.NumberFormat('es-CO').format(gananciaFinalConRetencion.toFixed(2))}`;
+  } else {
+    // Si no hay retención, mostrar la ganancia total
+    document.getElementById('retencionFinal').style.display = 'none'; // Ocultar el campo de retención
+    document.getElementById('gananciaFinal').innerText = `Ganancia Total: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
+  }
+
+  // Mostrar la sección de resultados
+  document.getElementById('resultados').style.display = 'block';
+}
+
+
+
 
     function calcularGananciaPrestamo() {
       const montoPrestamo = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
