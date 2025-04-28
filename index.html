@@ -184,11 +184,11 @@
 
       <div class="result" id="resultados" style="display:none;">
         <p id="montoFinal"></p>
-        <p id="gananciaFinal"></p> <!-- Mostrar ganancia después de retención o ganancia total -->
-        <p id="retencionFinal" style="display:none;"></p> <!-- Mostrar retención si aplica -->
+        <p id="gananciaFinal"></p>
+        <p id="retencionFinal"></p>
       </div>
-      
-      
+    </div>
+
     <!-- Sección Préstamos -->
     <div id="prestamos" class="section">
       <label for="montoPrestamo">Monto a Prestar (COP)</label>
@@ -309,25 +309,23 @@
 
   const gananciaFinalConRetencion = ganancia - retencion;
 
-  // Mostrar el monto final en la página
+  // Mostrar resultados en la página
   document.getElementById('montoFinal').innerText = `Monto Final: COP ${new Intl.NumberFormat('es-CO').format(montoFinal.toFixed(2))}`;
 
-  // Si hay retención, mostrar el mensaje de retención y la ganancia final después de la retención
+  // Si aplica la retención, mostrarla y mostrar "ganancia final" como retención
   if (retencion > 0) {
-    document.getElementById('retencionFinal').style.display = 'block'; // Mostrar el campo de retención
+    document.getElementById('retencionFinal').style.display = 'block';  // Mostrar la retención
     document.getElementById('retencionFinal').innerText = `Retención (7%): COP ${new Intl.NumberFormat('es-CO').format(retencion.toFixed(2))}`;
     document.getElementById('gananciaFinal').innerText = `Ganancia después de retención: COP ${new Intl.NumberFormat('es-CO').format(gananciaFinalConRetencion.toFixed(2))}`;
   } else {
-    // Si no hay retención, mostrar la ganancia total
-    document.getElementById('retencionFinal').style.display = 'none'; // Ocultar el campo de retención
+    // Si no hay retención, solo mostrar la ganancia
+    document.getElementById('retencionFinal').style.display = 'none';
     document.getElementById('gananciaFinal').innerText = `Ganancia Total: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
   }
 
   // Mostrar la sección de resultados
   document.getElementById('resultados').style.display = 'block';
 }
-
-
 
 
     function calcularGananciaPrestamo() {
