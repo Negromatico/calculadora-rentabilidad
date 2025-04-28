@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -92,7 +92,7 @@
       flex: 1;
       padding: 1rem;
       cursor: pointer;
-      background: var(--card-bg);
+      background: #84d087 ;
       border: 1px solid #ccc;
       border-bottom: none;
       font-weight: bold;
@@ -110,6 +110,22 @@
 
     .section.active {
       display: block;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+      padding: 0.8rem;
+      text-align: center;
+    }
+
+    th {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -134,7 +150,7 @@
       <input type="text" id="aporteMensual" value="0" />
 
       <label for="entidad">Entidad</label>
-      <select id="entidad">
+      <select id="entidad" onchange="mostrarCampoPersonalizado()">
         <option value="nu_flexible">Nu - Flexible (9.5%)</option>
         <option value="rapipay">Rapipay (9%)</option>
         <option value="lulobank">Lulobank (9.5%)</option>
@@ -180,7 +196,18 @@
 
       <div class="result" id="resultadoPrestamo" style="display:none;">
         <p id="gananciaPrestamo"></p>
-        <p id="pagoMensual"></p>
+        <p id="pagoMensualPrestamo"></p>
+        <h3>Detalle de Pagos Mensuales</h3>
+        <table id="tablaPagosPrestamo" style="display:none;">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Pago Mensual</th>
+              <th>Interés</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
@@ -190,9 +217,8 @@
     const montoInput = document.getElementById('monto');
     const aporteInput = document.getElementById('aporteMensual');
     const montoPrestamoInput = document.getElementById('montoPrestamo');
-    const entidadSelect = document.getElementById('entidad');
-    const porcentajeInput = document.getElementById('porcentajePersonalizado');
-    const porcentajeLabel = document.getElementById('labelPorcentajePersonalizado');
+    const interesMensualPrestamoInput = document.getElementById('interesMensualPrestamo');
+    const plazoPrestamoInput = document.getElementById('plazoPrestamo');
     const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
 
     function formatearNumeroInput(input) {
@@ -205,118 +231,117 @@
     aporteInput.addEventListener('input', () => formatearNumeroInput(aporteInput));
     montoPrestamoInput.addEventListener('input', () => formatearNumeroInput(montoPrestamoInput));
 
-    entidadSelect.addEventListener('change', () => {
-      const esPersonalizado = entidadSelect.value === 'personalizado';
-      const esCdt90 = entidadSelect.value === 'nu_cdt_90';
-      const esCdt120 = entidadSelect.value === 'nu_cdt_120';
-      porcentajeInput.style.display = porcentajeLabel.style.display = esPersonalizado ? 'block' : 'none';
-      if (esCdt90) {
-        document.getElementById('plazoValor').value = 90;
-        document.getElementById('plazoTipo').value = 'dias';
-      } else if (esCdt120) {
-        document.getElementById('plazoValor').value = 120;
-        document.getElementById('plazoTipo').value = 'dias';
-      }
-    });
-
     toggleDarkModeBtn.addEventListener('click', () => {
       document.body.classList.toggle('dark');
     });
 
-    function obtenerValorNumerico(input) {
-      let valor = input.value.replace('%', '');  // Eliminar símbolo de porcentaje si está presente
-      return parseFloat(valor) / 100 || 0;  // Convertir a decimal
+    function mostrarCalculadora(tipo) {
+      const secciones = document.querySelectorAll('.section');
+      secciones.forEach(seccion => seccion.classList.remove('active'));
+      const section = document.getElementById(tipo);
+      section.classList.add('active');
+
+      const tabs = document.querySelectorAll('.tabs button');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      const tab = document.getElementById(`tab${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+      tab.classList.add('active');
+    }
+
+    function mostrarCampoPersonalizado() {
+      const entidadSeleccionada = document.getElementById('entidad').value;
+      const porcentajeInput = document.getElementById('porcentajePersonalizado');
+      const labelPorcentaje = document.getElementById('labelPorcentajePersonalizado');
+
+      if (entidadSeleccionada === 'personalizado') {
+        porcentajeInput.style.display = 'block';
+        labelPorcentaje.style.display = 'block';
+      } else {
+        porcentajeInput.style.display = 'none';
+        labelPorcentaje.style.display = 'none';
+      }
     }
 
     function calcular() {
-      const montoInicial = obtenerValorNumerico(document.getElementById('monto'));
-      const aporteMensual = obtenerValorNumerico(document.getElementById('aporteMensual'));
-      const entidad = entidadSelect.value;
+      const monto = parseFloat(montoInput.value.replace(/\D/g, ''));
+      const aporteMensual = parseFloat(aporteInput.value.replace(/\D/g, ''));
+      const entidadSeleccionada = document.getElementById('entidad').value;
+      let porcentaje = 0;
+
+      if (entidadSeleccionada === 'nu_flexible') porcentaje = 9.5;
+      else if (entidadSeleccionada === 'rapipay') porcentaje = 9;
+      else if (entidadSeleccionada === 'lulobank') porcentaje = 9.5;
+      else if (entidadSeleccionada === 'nu_cdt_90') porcentaje = 10;
+      else if (entidadSeleccionada === 'nu_cdt_120') porcentaje = 10;
+      else if (entidadSeleccionada === 'personalizado') {
+        porcentaje = parseFloat(document.getElementById('porcentajePersonalizado').value);
+      }
+
+      const tasaMensual = porcentaje / 100 / 12; // Interés mensual
       const plazoValor = parseInt(document.getElementById('plazoValor').value);
       const plazoTipo = document.getElementById('plazoTipo').value;
 
-      if (!montoInicial || !plazoValor) {
-        alert("Por favor, completa correctamente los campos.");
-        return;
-      }
+      // Convertir el plazo a meses si no es en meses
+      let plazoEnMeses = plazoValor;
+      if (plazoTipo === 'dias') plazoEnMeses = plazoValor / 30;
+      else if (plazoTipo === 'años') plazoEnMeses = plazoValor * 12;
 
-      let dias = plazoValor;
-      if (plazoTipo === 'meses') dias = plazoValor * 30;
-      else if (plazoTipo === 'años') dias = plazoValor * 365;
+      // Calcular la ganancia
+      const montoFinal = monto * Math.pow(1 + tasaMensual, plazoEnMeses);
+      const ganancia = montoFinal - monto;
 
-      let tasaAnual = 0;
-      switch (entidad) {
-        case 'nu_flexible': tasaAnual = 9.5; break;
-        case 'rapipay': tasaAnual = 9; break;
-        case 'lulobank': tasaAnual = 9.5; break;
-        case 'nu_cdt_90': tasaAnual = 10; break;
-        case 'nu_cdt_120': tasaAnual = 10; break;
-        case 'personalizado':
-          tasaAnual = parseFloat(document.getElementById('porcentajePersonalizado').value);
-          if (!tasaAnual) {
-            alert("Ingresa un porcentaje válido.");
-            return;
-          }
-          break;
-      }
+      // Calcular la rentabilidad diaria
+      const rentabilidadDiaria = ganancia / plazoEnMeses / 30; // Aproximación de días en un mes
 
-      let monto = montoInicial;
-      let gananciaTotal = 0;
-      const tasaDiaria = Math.pow(1 + tasaAnual / 100, 1 / 365) - 1;
-
-      for (let i = 1; i <= dias; i++) {
-        const gananciaDiaria = monto * tasaDiaria;
-        monto += gananciaDiaria;
-        gananciaTotal += gananciaDiaria;
-
-        if (i % 30 === 0 && aporteMensual > 0) {
-          monto += aporteMensual;
-        }
-      }
-
+      // Retención del 7% si la rentabilidad diaria supera 2.588,57 COP
       let retencion = 0;
-      if (gananciaTotal / dias > 2588.57) {
-        retencion = gananciaTotal * 0.07;
-        monto -= retencion;
+      if (rentabilidadDiaria > 2588.57) {
+        retencion = ganancia * 0.07;
       }
 
-      const formatoPesos = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
+      const gananciaFinalConRetencion = ganancia - retencion;
+
+      // Mostrar resultados
+      document.getElementById('montoFinal').innerText = `Monto Final: COP ${new Intl.NumberFormat('es-CO').format(montoFinal.toFixed(2))}`;
+      document.getElementById('gananciaFinal').innerText = `Ganancia Total: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
+      document.getElementById('retencionFinal').innerText = `Retención (7%): COP ${new Intl.NumberFormat('es-CO').format(retencion.toFixed(2))}`;
 
       document.getElementById('resultados').style.display = 'block';
-      document.getElementById('montoFinal').textContent = `💰 Monto total final: ${formatoPesos(monto)}`;
-      document.getElementById('gananciaFinal').textContent = `📈 Ganancia generada: ${formatoPesos(gananciaTotal)}`;
-      document.getElementById('retencionFinal').textContent = `💸 Retención de ganancias: ${formatoPesos(retencion)}`;
     }
 
     function calcularGananciaPrestamo() {
       const montoPrestamo = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
-      const interesMensual = obtenerValorNumerico(document.getElementById('interesMensualPrestamo'));
-      const plazo = parseInt(document.getElementById('plazoPrestamo').value);
+      const interesMensual = parseFloat(interesMensualPrestamoInput.value);
+      const plazoPrestamo = parseInt(plazoPrestamoInput.value);
 
-      if (!montoPrestamo || !plazo || interesMensual <= 0) {
-        alert("Por favor, ingresa valores válidos.");
-        return;
+      // Calcular la ganancia total
+      const pagoMensual = (montoPrestamo * interesMensual / 100) + (montoPrestamo / plazoPrestamo);
+      const totalAPagar = pagoMensual * plazoPrestamo;
+      const ganancia = totalAPagar - montoPrestamo;
+
+      // Mostrar resultados
+      document.getElementById('gananciaPrestamo').innerText = `Ganancia total prestado: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
+      document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(2))}`;
+
+      // Mostrar tabla con detalle de pagos
+      const tabla = document.getElementById('tablaPagosPrestamo');
+      const tbody = tabla.querySelector('tbody');
+      tbody.innerHTML = ''; // Limpiar tabla antes de llenarla
+
+      for (let mes = 1; mes <= plazoPrestamo; mes++) {
+        const interesMes = montoPrestamo * interesMensual / 100;
+        const pagoTotalMes = pagoMensual;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${mes}</td>
+          <td>${new Intl.NumberFormat('es-CO').format(pagoTotalMes.toFixed(2))}</td>
+          <td>${new Intl.NumberFormat('es-CO').format(interesMes.toFixed(2))}</td>
+        `;
+        tbody.appendChild(tr);
       }
 
-      const pagoMensual = montoPrestamo * (interesMensual * Math.pow(1 + interesMensual, plazo)) / (Math.pow(1 + interesMensual, plazo) - 1);
-      const ganancia = pagoMensual * plazo - montoPrestamo;
-
-      const formatoPesos = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(valor);
-
+      tabla.style.display = 'table';
       document.getElementById('resultadoPrestamo').style.display = 'block';
-      document.getElementById('gananciaPrestamo').textContent = `💸 Ganancia total por préstamo: ${formatoPesos(ganancia)}`;
-      document.getElementById('pagoMensual').textContent = `📅 Pago mensual: ${formatoPesos(pagoMensual)}`;
-    }
-
-    function mostrarCalculadora(tipo) {
-      const secciones = document.querySelectorAll('.section');
-      secciones.forEach(seccion => seccion.classList.remove('active'));
-
-      const botones = document.querySelectorAll('.tabs button');
-      botones.forEach(boton => boton.classList.remove('active'));
-
-      document.getElementById(tipo).classList.add('active');
-      document.getElementById(`tab${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
     }
   </script>
 </body>
