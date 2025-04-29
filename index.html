@@ -331,8 +331,8 @@
       const totalPago = montoPrestamo + totalIntereses;
 
       // Mostrar los resultados
-      document.getElementById('gananciaPrestamo').innerText = `Ganancia total: COP ${new Intl.NumberFormat('es-CO').format(totalIntereses.toFixed(2))}`;
-      document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(2))}`;
+      document.getElementById('gananciaPrestamo').innerText = `Ganancia total: COP ${new Intl.NumberFormat('es-CO').format(totalIntereses.toFixed(1))}`;
+      document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(1))}`;
 
       // Crear y mostrar la tabla con los detalles de los pagos mensuales
       const tablaPagosPrestamo = document.getElementById('tablaPagosPrestamo');
@@ -346,8 +346,8 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${mes}</td>
-          <td>COP ${new Intl.NumberFormat('es-CO').format(pagoTotalMes.toFixed(2))}</td>
-          <td>COP ${new Intl.NumberFormat('es-CO').format(interesMes.toFixed(2))}</td>
+          <td>COP ${new Intl.NumberFormat('es-CO').format(pagoTotalMes.toFixed(1))}</td>
+          <td>COP ${new Intl.NumberFormat('es-CO').format(interesMes.toFixed(1))}</td>
         `;
         tbody.appendChild(row);
       }
