@@ -317,39 +317,42 @@
 
 
     function calcularGananciaPrestamo() {
-      const montoPrestamo = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
-      const interesMensual = parseFloat(interesMensualPrestamoInput.value);
-      const plazoPrestamo = parseInt(plazoPrestamoInput.value);
+  const monto = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
+  const interes = parseFloat(interesMensualPrestamoInput.value.replace(',', '.'));
+  const plazo = parseInt(plazoPrestamoInput.value);
 
-      // Calcular la ganancia total
-      const pagoMensual = (montoPrestamo * interesMensual / 100) + (montoPrestamo / plazoPrestamo);
-      const totalAPagar = pagoMensual * plazoPrestamo;
-      const ganancia = lAPagar - montoPrestamo;
+  if (isNaN(monto) || isNaN(interes) || isNaN(plazo)) {
+    alert("Por favor, completa todos los campos correctamente.");
+    return;
+  }
 
-      // Mostrar resultados
-      document.getElementById('gananciaPrestamo').innerText = `Ganancia total prestado: COP ${new Intl.NumberFormat('es-CO').format(ganancia.toFixed(2))}`;
-      document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(2))}`;
+  const tasaMensual = interes / 100;
+  const cuota = monto * tasaMensual / (1 - Math.pow(1 + tasaMensual, -plazo));
+  const totalPagado = cuota * plazo;
+  const ganancia = totalPagado - monto;
 
-      // Mostrar tabla con detalle de pagos
-      const tabla = document.getElementById('tablaPagosPrestamo');
-      const tbody = tabla.querySelector('tbody');
-      tbody.innerHTML = ''; // Limpiar tabla antes de llenarla
+  document.getElementById('gananciaPrestamo').innerText = `Ganancia Total: $${ganancia.toLocaleString('es-CO', {minimumFractionDigits: 0})}`;
+  document.getElementById('pagoMensualPrestamo').innerText = `Pago Mensual: $${cuota.toLocaleString('es-CO', {minimumFractionDigits: 0})}`;
+  
+  const tbody = document.querySelector('#tablaPagosPrestamo tbody');
+  tbody.innerHTML = '';
+  let saldo = monto;
 
-      for (let mes = 1; mes <= plazoPrestamo; mes++) {
-        const interesMes = montoPrestamo * interesMensual / 100;
-        const pagoTotalMes = pagoMensual;
+  for (let i = 1; i <= plazo; i++) {
+    const interesMes = saldo * tasaMensual;
+    const pago = cuota;
+    saldo -= (pago - interesMes);
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${mes}</td>
-          <td>${new Intl.NumberFormat('es-CO').format(pagoTotalMes.toFixed(2))}</td>
-          <td>${new Intl.NumberFormat('es-CO').format(interesMes.toFixed(2))}</td>
-        `;
-        tbody.appendChild(tr);
-      }
+    const fila = `<tr>
+      <td>${i}</td>
+      <td>$${pago.toLocaleString('es-CO', {minimumFractionDigits: 0})}</td>
+      <td>$${interesMes.toLocaleString('es-CO', {minimumFractionDigits: 0})}</td>
+    </tr>`;
+    tbody.innerHTML += fila;
+  }
 
-      tabla.style.display = 'table';
-      document.getElementById('resultadoPrestamo').style.display = 'block';
+  document.getElementById('resultadoPrestamo').style.display = 'block';
+  document.getElementById('tablaPagosPrestamo').style.display = 'table';
     }
   </script>
 </body>
