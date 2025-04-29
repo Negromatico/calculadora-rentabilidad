@@ -321,14 +321,14 @@
     const interesMensual = parseFloat(interesMensualPrestamoInput.value) / 100; // Convertimos el interés mensual a decimal
     const plazoPrestamo = parseInt(plazoPrestamoInput.value);
 
-    // Calcular el pago mensual utilizando la fórmula de amortización
-    const pagoMensual = (montoPrestamo * interesMensual * Math.pow(1 + interesMensual, plazoPrestamo)) / (Math.pow(1 + interesMensual, plazoPrestamo) - 1);
+    // Calcular el interés total utilizando interés simple
+    const totalIntereses = montoPrestamo * interesMensual * plazoPrestamo;
 
-    // Calcular el total de intereses
-    const totalIntereses = pagoMensual * plazoPrestamo - montoPrestamo;
-
-    // Calcular el total a pagar
+    // Calcular el total a pagar (prestamo + intereses)
     const totalPago = montoPrestamo + totalIntereses;
+
+    // Calcular el pago mensual (es el préstamo dividido entre el número de meses)
+    const pagoMensual = totalPago / plazoPrestamo;
 
     // Mostrar los resultados
     document.getElementById('gananciaPrestamo').innerText = `Ganancia total: COP ${new Intl.NumberFormat('es-CO').format(totalIntereses.toFixed(1))}`;
@@ -340,7 +340,7 @@
     tbody.innerHTML = ''; // Limpiar la tabla antes de agregar los nuevos datos
 
     for (let mes = 1; mes <= plazoPrestamo; mes++) {
-        const interesMes = montoPrestamo * interesMensual;
+        const interesMes = montoPrestamo * interesMensual; // El interés de cada mes es el mismo
         const pagoTotalMes = pagoMensual;
 
         const row = document.createElement('tr');
@@ -355,7 +355,7 @@
     // Mostrar la tabla de pagos
     tablaPagosPrestamo.style.display = 'table';
     document.getElementById('resultadoPrestamo').style.display = 'block';
-    }
+}
   </script>
 </body>
 </html>
