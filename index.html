@@ -331,8 +331,8 @@
   const totalPagado = cuota * plazo;
   const ganancia = totalPagado - monto;
 
-  document.getElementById('gananciaPrestamo').innerText = `Ganancia Total: $${ganancia.toLocaleString('es-CO', {minimumFractionDigits: 0})}`;
-  document.getElementById('pagoMensualPrestamo').innerText = `Pago Mensual: $${cuota.toLocaleString('es-CO', {minimumFractionDigits: 0})}`;
+  document.getElementById('gananciaPrestamo').innerText = `Ganancia Total: $${ganancia.toLocaleString('es-CO', {minimumFractionDigits: 2})}`;
+  document.getElementById('pagoMensualPrestamo').innerText = `Pago Mensual: $${cuota.toLocaleString('es-CO', {minimumFractionDigits: 2})}`;
   
   const tbody = document.querySelector('#tablaPagosPrestamo tbody');
   tbody.innerHTML = '';
