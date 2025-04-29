@@ -317,31 +317,31 @@
 
 
     function calcularGananciaPrestamo() {
-      const montoPrestamo = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
-      const interesMensual = parseFloat(interesMensualPrestamoInput.value);
-      const plazoPrestamo = parseInt(plazoPrestamoInput.value);
+    const montoPrestamo = parseFloat(montoPrestamoInput.value.replace(/\D/g, ''));
+    const interesMensual = parseFloat(interesMensualPrestamoInput.value) / 100; // Convertimos el interés mensual a decimal
+    const plazoPrestamo = parseInt(plazoPrestamoInput.value);
 
-      // Calcular el pago mensual
-      const pagoMensual = (montoPrestamo * interesMensual / 100);
+    // Calcular el pago mensual utilizando la fórmula de amortización
+    const pagoMensual = (montoPrestamo * interesMensual * Math.pow(1 + interesMensual, plazoPrestamo)) / (Math.pow(1 + interesMensual, plazoPrestamo) - 1);
 
-      // Calcular el total de intereses
-      const totalIntereses = pagoMensual * plazoPrestamo;
+    // Calcular el total de intereses
+    const totalIntereses = pagoMensual * plazoPrestamo - montoPrestamo;
 
-      // Calcular el total a pagar
-      const totalPago = montoPrestamo + totalIntereses;
+    // Calcular el total a pagar
+    const totalPago = montoPrestamo + totalIntereses;
 
-      // Mostrar los resultados
-      document.getElementById('gananciaPrestamo').innerText = `Ganancia total: COP ${new Intl.NumberFormat('es-CO').format(totalIntereses.toFixed(1))}`;
-      document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(1))}`;
+    // Mostrar los resultados
+    document.getElementById('gananciaPrestamo').innerText = `Ganancia total: COP ${new Intl.NumberFormat('es-CO').format(totalIntereses.toFixed(1))}`;
+    document.getElementById('pagoMensualPrestamo').innerText = `Pago mensual: COP ${new Intl.NumberFormat('es-CO').format(pagoMensual.toFixed(1))}`;
 
-      // Crear y mostrar la tabla con los detalles de los pagos mensuales
-      const tablaPagosPrestamo = document.getElementById('tablaPagosPrestamo');
-      const tbody = tablaPagosPrestamo.querySelector('tbody');
-      tbody.innerHTML = ''; // Limpiar la tabla antes de agregar los nuevos datos
+    // Crear y mostrar la tabla con los detalles de los pagos mensuales
+    const tablaPagosPrestamo = document.getElementById('tablaPagosPrestamo');
+    const tbody = tablaPagosPrestamo.querySelector('tbody');
+    tbody.innerHTML = ''; // Limpiar la tabla antes de agregar los nuevos datos
 
-      for (let mes = 1; mes <= plazoPrestamo; mes++) {
-        const interesMes = montoPrestamo * interesMensual / 100;
-        const pagoTotalMes = pagoMensual + interesMes;
+    for (let mes = 1; mes <= plazoPrestamo; mes++) {
+        const interesMes = montoPrestamo * interesMensual;
+        const pagoTotalMes = pagoMensual;
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -350,11 +350,11 @@
           <td>COP ${new Intl.NumberFormat('es-CO').format(interesMes.toFixed(1))}</td>
         `;
         tbody.appendChild(row);
-      }
+    }
 
-      // Mostrar la tabla de pagos
-      tablaPagosPrestamo.style.display = 'table';
-      document.getElementById('resultadoPrestamo').style.display = 'block';
+    // Mostrar la tabla de pagos
+    tablaPagosPrestamo.style.display = 'table';
+    document.getElementById('resultadoPrestamo').style.display = 'block';
     }
   </script>
 </body>
